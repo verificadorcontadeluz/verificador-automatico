@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Verificador Automático de Conta de Luz</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #f2f4f7;
+      color: #222;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 22px 15px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    header p {
+      margin: 8px 0 0;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #bbb;
+      border-radius: 8px;
+      font-size: 17px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      background: #16a34a;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    #resultado {
+      display: none;
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 10px;
+      background: #eef6ff;
+    }
+
+    .numero {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .alerta {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+
+    .observacao {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px 15px;
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>⚡ Verificador de Conta de Luz</h1>
+    <p>Faça uma análise preliminar dos valores da sua conta</p>
+  </header>
+
+  <div class="container">
+
+    <div class="card">
+
+      <h2>Digite os dados da conta</h2>
+
+      <label for="consumo">Consumo da conta (kWh)</label>
+      <input
+        type="number"
+        id="consumo"
+        placeholder="Ex.: 250"
+        step="0.01"
+      >
+
+      <label for="valor">Valor total da conta (R$)</label>
+      <input
+        type="number"
+        id="valor"
+        placeholder="Ex.: 320,00"
+        step="0.01"
+      >
+
+      <label for="tarifa">Tarifa de referência (R$/kWh)</label>
+      <input
+        type="number"
+        id="tarifa"
+        placeholder="Ex.: 1,00"
+        step="0.0001"
+      >
+
+      <button onclick="verificarConta()">
+        VERIFICAR CONTA
+      </button>
+
+      <div id="resultado"></div>
+
+      <div class="observacao">
+        <strong>Importante:</strong> esta primeira versão faz uma
+        análise matemática dos dados informados. O valor final de uma
+        conta de energia pode envolver impostos, encargos, iluminação
+        pública, bandeiras tarifárias, tarifas específicas e outros
+        componentes.
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer>
+    Verificador Automático de Conta de Luz<br>
+    Projeto em desenvolvimento
+  </footer>
+
+  <script>
+
+    function verificarConta() {
+
+      const consumo = parseFloat(
+        document.getElementById("consumo").value
+      );
+
+      const valor = parseFloat(
+        document.getElementById("valor").value
+      );
+
+      const tarifa = parseFloat(
+        document.getElementById("tarifa").value
+      );
+
+      const resultado =
+        document.getElementById("resultado");
+
+      if (
+        isNaN(consumo) ||
+        isNaN(valor) ||
+        isNaN(tarifa) ||
+        consumo <= 0 ||
+        valor <= 0 ||
+        tarifa <= 0
+      ) {
+
+        resultado.style.display = "block";
+
+        resultado.innerHTML = `
+          <strong>⚠️ Atenção</strong>
+          <p>
+            Preencha todos os campos com valores válidos.
+          </p>
+        `;
+
+        return;
+      }
+
+      // Valor efetivamente pago por kWh
+      const valorPorKwh = valor / consumo;
+
+      // Valor de referência
+      const valorEsperado = consumo * tarifa;
+
+      // Diferença
+      const diferenca = valor - valorEsperado;
+
+      // Percentual da diferença
+      const percentual =
+        (diferenca / valorEsperado) * 100;
+
+      let mensagem = "";
+      let classe = "";
+
+      if (percentual > 10) {
+
+        mensagem =
+          "⚠️ O valor informado está acima da tarifa de referência.";
+
+        classe = "alerta";
+
+      } else if (percentual < -10) {
+
+        mensagem =
+          "ℹ️ O valor informado está abaixo da tarifa de referência.";
+
+        classe = "alerta";
+
+      } else {
+
+        mensagem =
+          "✅ O valor informado está próximo da tarifa de referência.";
+
+        classe = "alerta";
+      }
+
+      resultado.style.display = "block";
+
+      resultado.innerHTML = `
+
+        <h3>Resultado da análise</h3>
+
+        <p>
+          <strong>Consumo:</strong>
+          ${consumo.toFixed(2)} kWh
+        </p>
+
+        <p>
+          <strong>Valor da conta:</strong>
+          R$ ${valor.toFixed(2)}
+        </p>
+
+        <p>
+          <strong>Valor efetivo por kWh:</strong>
+          <span class="numero">
+            R$ ${valorPorKwh.toFixed(4)}
+          </span>
+        </p>
+
+        <p>
+          <strong>Valor calculado pela referência:</strong>
+          R$ ${valorEsperado.toFixed(2)}
+        </p>
+
+        <p>
+          <strong>Diferença:</strong>
+          R$ ${diferenca.toFixed(2)}
+        </p>
+
+        <p>
+          <strong>Diferença percentual:</strong>
+          ${percentual.toFixed(2)}%
+        </p>
+
+        <div class="${classe}">
+          ${mensagem}
+        </div>
+
+        <p style="font-size:13px; margin-top:15px;">
+          Este resultado é uma análise preliminar e não substitui
+          a conferência detalhada da fatura.
+        </p>
+      `;
+    }
+
+  </script>
+
+</body>
+  </html>
